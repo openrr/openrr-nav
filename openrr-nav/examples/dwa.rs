@@ -41,20 +41,14 @@ fn main() {
     )
     .unwrap();
 
-    let path_grid = result
-        .iter()
-        .map(|p| map.to_grid(p[0], p[1]).unwrap())
-        .collect::<Vec<_>>();
-
-    for p in result {
+    for p in result.iter() {
         map.set_value(&map.to_grid(p[0], p[1]).unwrap(), 0).unwrap();
     }
     show_ascii_map(&map, 1.0);
-    let path_distance_map = path_distance_map(&map, &path_grid).unwrap();
+    let path_distance_map = path_distance_map(&map, &result).unwrap();
     show_ascii_map(&path_distance_map, 1.0);
     println!("=======================");
-    let goal_grid = map.to_grid(goal[0], goal[1]).unwrap();
-    let goal_distance_map = goal_distance_map(&map, &goal_grid).unwrap();
+    let goal_distance_map = goal_distance_map(&map, &goal).unwrap();
     show_ascii_map(&goal_distance_map, 0.1);
     println!("=======================");
     let obstacle_distance_map = obstacle_distance_map(&map).unwrap();

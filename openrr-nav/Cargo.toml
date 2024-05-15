@@ -10,14 +10,15 @@ repository.workspace = true
 [dependencies]
 arci.workspace = true
 grid_map.workspace = true
+rand.workspace = true
+rrt.workspace = true
 thiserror.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
+yaml-rust.workspace = true
 
 [dev-dependencies]
 bevy.workspace = true
-rand.workspace = true
-rrt.workspace = true
 
 [lints]
 workspace = true

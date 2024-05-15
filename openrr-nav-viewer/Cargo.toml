@@ -24,6 +24,7 @@ clap.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true
+arci-urdf-viz.workspace = true
 rand.workspace = true
 rrt.workspace = true
 

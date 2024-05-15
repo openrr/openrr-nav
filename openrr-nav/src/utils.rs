@@ -1,3 +1,6 @@
+use crate::{Error, Result};
+use arci::nalgebra as na;
+
 /// Utility for debug
 pub fn show_ascii_map(map: &grid_map::GridMap<u8>, scale: f32) {
     use grid_map::Cell;
@@ -35,5 +38,44 @@ pub fn nearest_path_point(path: &[Vec<f64>], target_point: [f64; 2]) -> Option<(
             }
         }
         Some((nearest.0, path[nearest.0].clone()))
+    }
+}
+
+#[derive(Debug)]
+pub struct PoseTimeStamped {
+    pose: Option<na::Isometry2<f64>>,
+    time_stamp: std::time::Instant,
+}
+
+impl PoseTimeStamped {
+    pub fn pose(&self) -> Result<na::Isometry2<f64>> {
+        match self.pose {
+            Some(p) => Ok(p),
+            None => Err(Error::Other(
+                "PoseTimeStamped is not initialized!".to_owned(),
+            )),
+        }
+    }
+
+    pub fn set_pose(&mut self, pose: na::Isometry2<f64>) {
+        self.pose = Some(pose);
+        self.time_stamp = std::time::Instant::now();
+    }
+
+    pub fn elapsed(&self) -> std::time::Duration {
+        self.time_stamp.elapsed()
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self.pose.is_some()
+    }
+}
+
+impl Default for PoseTimeStamped {
+    fn default() -> Self {
+        Self {
+            pose: None,
+            time_stamp: std::time::Instant::now(),
+        }
     }
 }

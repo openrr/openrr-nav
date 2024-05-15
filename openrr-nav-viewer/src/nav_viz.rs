@@ -6,7 +6,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-#[derive(Debug, Clone, Resource)]
+#[derive(Debug, Clone, Resource, Default)]
 pub struct NavigationViz {
     pub layered_grid_map: Arc<Mutex<LayeredGridMap<u8>>>,
     pub angle_table: Arc<Mutex<HashMap<String, f64>>>,

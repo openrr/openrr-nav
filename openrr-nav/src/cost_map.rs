@@ -1,16 +1,102 @@
-use grid_map::{Cell, Error, Grid, GridMap, Position, Result};
+use grid_map::{Cell, Error, Grid, GridMap, LayeredGridMap, Position, Result};
 
 use crate::utils::nearest_path_point;
 
+const PATH_DISTANCE_MAP_NAME: &str = "path";
+const GOAL_DISTANCE_MAP_NAME: &str = "goal";
+const OBSTACLE_DISTANCE_MAP_NAME: &str = "obstacle";
+const LOCAL_GOAL_DISTANCE_MAP_NAME: &str = "local_goal";
+
+#[derive(Debug)]
+pub struct CostMaps {
+    original_map: GridMap<u8>,
+    maps: LayeredGridMap<u8>,
+}
+
+impl CostMaps {
+    pub fn new(map: &GridMap<u8>, path: &[Vec<f64>], start: &[f64], goal: &[f64]) -> Self {
+        let mut maps = LayeredGridMap::default();
+
+        maps.add_layer(
+            PATH_DISTANCE_MAP_NAME.to_owned(),
+            path_distance_map(map, path).unwrap(),
+        );
+        maps.add_layer(
+            GOAL_DISTANCE_MAP_NAME.to_owned(),
+            goal_distance_map(map, goal).unwrap(),
+        );
+        maps.add_layer(
+            OBSTACLE_DISTANCE_MAP_NAME.to_owned(),
+            obstacle_distance_map(map).unwrap(),
+        );
+        maps.add_layer(
+            LOCAL_GOAL_DISTANCE_MAP_NAME.to_owned(),
+            local_goal_distance_map(map, path, [start[0], start[1]]).unwrap(),
+        );
+
+        Self {
+            original_map: map.clone(),
+            maps,
+        }
+    }
+
+    pub fn update(
+        &mut self,
+        map: &Option<GridMap<u8>>,
+        path: &[Vec<f64>],
+        current_pose: &[f64],
+        goal: &[f64],
+    ) {
+        if let Some(m) = map {
+            self.original_map = m.clone();
+            self.maps.add_layer(
+                OBSTACLE_DISTANCE_MAP_NAME.to_owned(),
+                obstacle_distance_map(&self.original_map).unwrap(),
+            );
+        }
+        if !path.is_empty() {
+            self.maps.add_layer(
+                PATH_DISTANCE_MAP_NAME.to_owned(),
+                path_distance_map(&self.original_map, path).unwrap(),
+            );
+        }
+        if !goal.is_empty() {
+            self.maps.add_layer(
+                GOAL_DISTANCE_MAP_NAME.to_owned(),
+                goal_distance_map(&self.original_map, goal).unwrap(),
+            );
+        }
+        if !current_pose.is_empty() {
+            self.maps.add_layer(
+                LOCAL_GOAL_DISTANCE_MAP_NAME.to_owned(),
+                local_goal_distance_map(
+                    &self.original_map,
+                    path,
+                    [current_pose[0], current_pose[1]],
+                )
+                .unwrap(),
+            );
+        }
+    }
+
+    pub fn layered_grid_map(&self) -> LayeredGridMap<u8> {
+        self.maps.clone()
+    }
+}
+
 /// Create path distance map
-pub fn path_distance_map(map: &GridMap<u8>, path: &[Grid]) -> Result<GridMap<u8>> {
+pub fn path_distance_map(map: &GridMap<u8>, path: &[Vec<f64>]) -> Result<GridMap<u8>> {
+    let path_grid = path
+        .iter()
+        .map(|p| map.to_grid(p[0], p[1]).unwrap())
+        .collect::<Vec<_>>();
     let mut path_distance_map = map.copy_without_value();
-    for ind in path {
+    for ind in path_grid.iter() {
         path_distance_map
             .set_value(ind, 0)
             .ok_or_else(|| Error::OutOfRangeGrid(*ind))?;
     }
-    expand_distance_map_internal(&mut path_distance_map, path, 0, |v| {
+    expand_distance_map_internal(&mut path_distance_map, &path_grid, 0, |v| {
         if v == u8::MAX {
             u8::MAX
         } else {
@@ -21,12 +107,13 @@ pub fn path_distance_map(map: &GridMap<u8>, path: &[Grid]) -> Result<GridMap<u8>
 }
 
 /// Create goal distance map
-pub fn goal_distance_map(map: &GridMap<u8>, goal: &Grid) -> Result<GridMap<u8>> {
+pub fn goal_distance_map(map: &GridMap<u8>, goal: &[f64]) -> Result<GridMap<u8>> {
+    let goal_grid = map.to_grid(goal[0], goal[1]).unwrap();
     let mut goal_distance_map = map.copy_without_value();
     goal_distance_map
-        .set_value(goal, 0)
-        .ok_or_else(|| Error::OutOfRangeGrid(*goal))?;
-    expand_distance_map_internal(&mut goal_distance_map, &[goal.to_owned()], 0, |v| {
+        .set_value(&goal_grid, 0)
+        .ok_or_else(|| Error::OutOfRangeGrid(goal_grid))?;
+    expand_distance_map_internal(&mut goal_distance_map, &[goal_grid], 0, |v| {
         if v == u8::MAX {
             u8::MAX
         } else {
@@ -90,9 +177,8 @@ pub fn local_goal_distance_map(
     );
 
     let local_map = GridMap::<u8>::new(min_point, max_point, resolution);
-    let grid = local_map.to_grid(local_goal[0], local_goal[1]).unwrap();
 
-    goal_distance_map(&local_map, &grid)
+    goal_distance_map(&local_map, &[local_goal[0], local_goal[1]])
 }
 
 pub fn expand_distance_map_internal<F>(
@@ -168,18 +254,13 @@ mod tests {
         )
         .unwrap();
 
-        let path_grid = result
-            .iter()
-            .map(|p| map.to_grid(p[0], p[1]).unwrap())
-            .collect::<Vec<_>>();
-        for p in result {
+        for p in result.iter() {
             map.set_value(&map.to_grid(p[0], p[1]).unwrap(), 0).unwrap();
         }
 
-        show_ascii_map(&path_distance_map(&map, &path_grid).unwrap(), 1.0);
+        show_ascii_map(&path_distance_map(&map, &result).unwrap(), 1.0);
         println!("=======================");
-        let goal_grid = map.to_grid(goal[0], goal[1]).unwrap();
-        show_ascii_map(&goal_distance_map(&map, &goal_grid).unwrap(), 1.0);
+        show_ascii_map(&goal_distance_map(&map, &goal).unwrap(), 1.0);
         println!("=======================");
         show_ascii_map(&obstacle_distance_map(&map).unwrap(), 0.1);
     }
