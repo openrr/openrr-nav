@@ -1,3 +1,4 @@
+use arci::nalgebra as na;
 use bevy::{
     prelude::*,
     winit::{UpdateMode, WinitSettings},
@@ -10,7 +11,6 @@ use bevy_egui::{
     },
     EguiContexts, EguiPlugin,
 };
-use nalgebra::Vector2;
 use openrr_nav::Pose;
 
 use crate::*;
@@ -200,7 +200,10 @@ fn update_system(
                     let angle = (p.y - start_position.translation.y)
                         .atan2(p.x - start_position.translation.x);
                     *start_position = Pose::new(
-                        Vector2::new(start_position.translation.x, start_position.translation.y),
+                        na::Vector2::new(
+                            start_position.translation.x,
+                            start_position.translation.y,
+                        ),
                         angle,
                     );
                     println!("start: {:?}", start_position);
@@ -213,7 +216,7 @@ fn update_system(
                     && ui_checkboxes.counter == 0
                 {
                     let mut start_position = res_nav.start_position.lock().unwrap();
-                    *start_position = Pose::new(Vector2::new(p.x, p.y), 0.0);
+                    *start_position = Pose::new(na::Vector2::new(p.x, p.y), 0.0);
                     ui_checkboxes.counter = 1;
                     displayed_arrows.set_start([p.x, p.y]);
                 }
@@ -232,7 +235,7 @@ fn update_system(
                     let angle = (p.y - goal_position.translation.y)
                         .atan2(p.x - goal_position.translation.x);
                     *goal_position = Pose::new(
-                        Vector2::new(goal_position.translation.x, goal_position.translation.y),
+                        na::Vector2::new(goal_position.translation.x, goal_position.translation.y),
                         angle,
                     );
                     println!("goal: {:?}", goal_position);
@@ -247,7 +250,7 @@ fn update_system(
                     && ui_checkboxes.counter == 0
                 {
                     let mut goal_position = res_nav.goal_position.lock().unwrap();
-                    *goal_position = Pose::new(Vector2::new(p.x, p.y), 0.0);
+                    *goal_position = Pose::new(na::Vector2::new(p.x, p.y), 0.0);
                     ui_checkboxes.counter = 1;
                     displayed_arrows.set_start([p.x, p.y]);
                 }

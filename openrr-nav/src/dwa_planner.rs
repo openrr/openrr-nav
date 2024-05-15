@@ -1,6 +1,6 @@
+use arci::nalgebra as na;
 use grid_map::{Cell, GridMap, LayeredGridMap, Position};
 pub use na::Vector2;
-use nalgebra as na;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, path::Path};
 

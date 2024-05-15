@@ -10,7 +10,6 @@ repository.workspace = true
 [dependencies]
 arci.workspace = true
 grid_map.workspace = true
-nalgebra.workspace = true
 thiserror.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true

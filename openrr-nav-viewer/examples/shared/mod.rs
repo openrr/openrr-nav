@@ -1,6 +1,6 @@
+use arci::nalgebra as na;
 use clap::Parser;
 use grid_map::*;
-use nalgebra as na;
 use openrr_nav::*;
 use openrr_nav_viewer::NavigationViz;
 

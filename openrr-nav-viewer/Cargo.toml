@@ -11,10 +11,10 @@ repository.workspace = true
 tonic-build.workspace = true
 
 [dependencies]
+arci.workspace = true
 bevy_egui.workspace = true
 bevy.workspace = true
 grid_map.workspace = true
-nalgebra.workspace = true
 openrr-nav.workspace = true
 prost-types.workspace = true
 prost.workspace = true

@@ -1,10 +1,10 @@
+use arci::nalgebra as na;
 use bevy_egui::egui::{
     epaint::Hsva,
     plot::{Line, PlotPoints, Points, Polygon},
     Color32,
 };
 use grid_map::*;
-use nalgebra as na;
 use openrr_nav::*;
 
 pub fn grid_map_to_polygon(grid_map: &GridMap<u8>) -> Vec<Polygon> {
