@@ -46,7 +46,11 @@ fn main() {
     let client = UrdfVizWebClient::default();
     client.run_send_velocity_thread();
 
-    let nav = NavigationViz::default();
+    let planner_config_path = format!(
+        "{}/../openrr-nav/config/dwa_parameter_config.yaml",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let nav = NavigationViz::new(&planner_config_path).unwrap();
 
     let start = client.current_pose("").unwrap();
     let start = [
@@ -64,27 +68,18 @@ fn main() {
 
     let cloned_nav = nav.clone();
 
-    let planner = DwaPlanner::new_from_config(format!(
-        "{}/../openrr-nav/config/dwa_parameter_config.yaml",
-        env!("CARGO_MANIFEST_DIR")
-    ))
-    .unwrap();
-
-    {
-        let mut locked_planner = cloned_nav.planner.lock().unwrap();
-        *locked_planner = planner.clone();
-    }
+    nav.reload_planner().unwrap();
 
     let mut local_plan_executor = LocalPlanExecutor::new(
         Arc::new(Mutex::new(client.clone())),
         Arc::new(Mutex::new(client.clone())),
         "".to_owned(),
-        planner,
+        nav.planner.lock().unwrap().clone(),
         0.1,
     );
 
     std::thread::spawn(move || loop {
-        if cloned_nav.is_run.lock().unwrap().clone() {
+        if *cloned_nav.is_run.lock().unwrap() {
             let mut map = new_sample_map();
             let start;
             let goal;
