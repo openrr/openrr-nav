@@ -272,8 +272,8 @@ impl From<pb::Cell> for grid_map::Cell<u8> {
     }
 }
 
-impl From<nalgebra::Isometry2<f64>> for pb::Isometry2 {
-    fn from(val: nalgebra::Isometry2<f64>) -> Self {
+impl From<arci::nalgebra::Isometry2<f64>> for pb::Isometry2 {
+    fn from(val: arci::nalgebra::Isometry2<f64>) -> Self {
         Self {
             rotation: Some(pb::UnitComplex {
                 re: val.rotation.re,
@@ -286,13 +286,13 @@ impl From<nalgebra::Isometry2<f64>> for pb::Isometry2 {
         }
     }
 }
-impl From<pb::Isometry2> for nalgebra::Isometry2<f64> {
+impl From<pb::Isometry2> for arci::nalgebra::Isometry2<f64> {
     fn from(val: pb::Isometry2) -> Self {
         let translation = val.translation.unwrap();
         let rotation = val.rotation.unwrap();
         Self::from_parts(
-            nalgebra::Translation2::new(translation.x, translation.y),
-            nalgebra::UnitComplex::from_complex(nalgebra::Complex {
+            arci::nalgebra::Translation2::new(translation.x, translation.y),
+            arci::nalgebra::UnitComplex::from_complex(arci::nalgebra::Complex {
                 re: rotation.re,
                 im: rotation.im,
             }),

@@ -1,8 +1,8 @@
-use nalgebra::Isometry2;
+use arci::nalgebra as na;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
-pub struct RobotPath(pub Vec<Isometry2<f64>>);
+pub struct RobotPath(pub Vec<na::Isometry2<f64>>);
 
 impl RobotPath {
     pub fn new() -> Self {
@@ -13,7 +13,7 @@ impl RobotPath {
         self.0.clear();
     }
 
-    pub fn push(&mut self, pose: Isometry2<f64>) {
+    pub fn push(&mut self, pose: na::Isometry2<f64>) {
         self.0.push(pose);
     }
 }

@@ -82,19 +82,14 @@ fn main() {
             let mut locked_robot_path = cloned_nav.robot_path.lock().unwrap();
             locked_robot_path.set_global_path(robot_path_from_vec_vec(result.clone()));
         }
-        let path_grid = result
-            .iter()
-            .map(|p| map.to_grid(p[0], p[1]).unwrap())
-            .collect::<Vec<_>>();
 
         for p in &result {
             map.set_value(&map.to_grid(p[0], p[1]).unwrap(), 0).unwrap();
         }
 
-        let path_distance_map = path_distance_map(&map, &path_grid).unwrap();
+        let path_distance_map = path_distance_map(&map, &result).unwrap();
 
-        let goal_grid = map.to_grid(goal[0], goal[1]).unwrap();
-        let goal_distance_map = goal_distance_map(&map, &goal_grid).unwrap();
+        let goal_distance_map = goal_distance_map(&map, &goal).unwrap();
 
         let obstacle_distance_map = obstacle_distance_map(&map).unwrap();
 
@@ -129,12 +124,9 @@ fn main() {
         for i in 0..300 {
             // let dynamic_map = new_dynamic_sample_map(i);
             let dynamic_map = new_sample_map();
-            let path_distance_map =
-                openrr_nav::path_distance_map(&dynamic_map, &path_grid).unwrap();
+            let path_distance_map = openrr_nav::path_distance_map(&dynamic_map, &result).unwrap();
 
-            let goal_grid = map.to_grid(goal[0], goal[1]).unwrap();
-            let goal_distance_map =
-                openrr_nav::goal_distance_map(&dynamic_map, &goal_grid).unwrap();
+            let goal_distance_map = openrr_nav::goal_distance_map(&dynamic_map, &goal).unwrap();
 
             let obstacle_distance_map = openrr_nav::obstacle_distance_map(&dynamic_map).unwrap();
 
