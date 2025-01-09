@@ -213,6 +213,49 @@ where
             cells,
         }
     }
+
+    /// Extend grid map with the given size
+    pub fn extend(&mut self, min_point: Position, max_point: Position) {
+        if min_point.x >= self.grid_converter.min_point().x
+            && min_point.y >= self.grid_converter.min_point().y
+            && max_point.x <= self.grid_converter.max_point().x
+            && max_point.y <= self.grid_converter.max_point().y
+        {
+            return;
+        }
+        let new_grid_converter = GridPositionConverter::new(
+            Position::new(
+                f64::min(self.grid_converter.min_point().x, min_point.x),
+                f64::min(self.grid_converter.min_point().y, min_point.y),
+            ),
+            Position::new(
+                f64::max(self.grid_converter.max_point().x, max_point.x),
+                f64::max(self.grid_converter.max_point().y, max_point.y),
+            ),
+            self.grid_converter.resolution(),
+        );
+        let new_cells = vec![Cell::Uninitialized; new_grid_converter.size().len()];
+        let mut new_map = GridMap {
+            grid_converter: new_grid_converter,
+            cells: new_cells,
+        };
+        let delta_x = ((self.min_point().x - new_map.min_point().x) / self.resolution()) as usize;
+        let delta_y = ((self.min_point().y - new_map.min_point().y) / self.resolution()) as usize;
+        for (i, cell) in self.cells.iter().enumerate() {
+            let grid = Grid {
+                x: i % self.width(),
+                y: i / self.width(),
+            };
+            let new_grid = Grid {
+                x: grid.x + delta_x,
+                y: grid.y + delta_y,
+            };
+            if let Some(index) = new_map.to_index(&new_grid) {
+                new_map.cells_mut()[index] = cell.clone();
+            }
+        }
+        *self = new_map;
+    }
 }
 
 #[cfg(test)]
