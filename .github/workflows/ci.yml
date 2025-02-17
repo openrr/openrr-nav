@@ -1,10 +1,12 @@
-name: Rust
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 15 * * 0,4' # Every Monday and Friday at 00:00 JST
 
 env:
   CARGO_INCREMENTAL: 0
@@ -14,6 +16,14 @@ env:
   RUSTDOCFLAGS: -D warnings
   RUSTFLAGS: -D warnings
   RUSTUP_MAX_RETRIES: 10
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   build:
